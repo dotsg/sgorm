@@ -106,7 +106,6 @@ const (
 )
 
 // Id field
-//
 type Id struct {
 	isAssigned bool
 	val        uint
@@ -233,7 +232,6 @@ func (c *Rank) UnmarshalJSON(data []byte) error {
 }
 
 // Type field
-//
 type Type struct {
 	_updated bool
 	val      SongType
@@ -329,7 +327,6 @@ func (c *Hash) UnmarshalJSON(data []byte) error {
 }
 
 // Remark field
-//
 type Remark struct {
 	_updated bool
 	val      null.String
@@ -377,7 +374,6 @@ func (c *Remark) UnmarshalJSON(data []byte) error {
 }
 
 // Manifest field
-//
 type Manifest struct {
 	_updated bool
 	val      []byte
