@@ -13,7 +13,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/olachat/gola/mysqldriver"
+	"github.com/olachat/gola/drivers"
+	"github.com/olachat/gola/drivers/mysqldriver"
 	"github.com/olachat/gola/ormtpl"
 	"github.com/olachat/gola/structs"
 )
@@ -22,7 +23,7 @@ import (
 
 `output`: output folder path
 */
-func Run(config mysqldriver.DBConfig, output string) int {
+func Run(config drivers.DBConfig, output string) int {
 	m := &mysqldriver.MySQLDriver{}
 	db, err := m.Assemble(config)
 	if err != nil {

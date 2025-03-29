@@ -14,7 +14,7 @@ import (
 	"github.com/olachat/gola/coredb"
 	"github.com/olachat/gola/golalib/testdata"
 	"github.com/olachat/gola/golalib/testdata/users"
-	"github.com/olachat/gola/mysqldriver"
+	"github.com/olachat/gola/drivers/mysqldriver"
 )
 
 const (

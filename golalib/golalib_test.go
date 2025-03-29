@@ -20,7 +20,8 @@ import (
 	"github.com/dolthub/go-mysql-server/server"
 	gsql "github.com/dolthub/go-mysql-server/sql"
 	"github.com/dolthub/go-mysql-server/sql/information_schema"
-	"github.com/olachat/gola/mysqldriver"
+	"github.com/olachat/gola/drivers"
+	"github.com/olachat/gola/drivers/mysqldriver"
 	"github.com/olachat/gola/ormtpl"
 	"github.com/olachat/gola/structs"
 )
@@ -71,7 +72,7 @@ func init() {
 }
 
 func getDB() *structs.DBInfo {
-	var config mysqldriver.Config = map[string]any{
+	var config drivers.Config = map[string]any{
 		"dbname":    testDBName,
 		"whitelist": "blogs",
 		"host":      "localhost",
@@ -80,7 +81,7 @@ func getDB() *structs.DBInfo {
 		"pass":      "",
 		"sslmode":   "false",
 	}
-	dbconfig := mysqldriver.NewDBConfig(config)
+	dbconfig := drivers.NewDBConfig(config)
 
 	m := &mysqldriver.MySQLDriver{}
 	db, err := m.Assemble(dbconfig)

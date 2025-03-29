@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/mitchellh/cli"
-	"github.com/olachat/gola/mysqldriver"
+	"github.com/olachat/gola/drivers"
 	"github.com/spf13/viper"
 )
 
@@ -37,8 +37,8 @@ func (*cmd) Run(args []string) int {
 	viper.AutomaticEnv()
 	driverName := "mysql"
 
-	var config mysqldriver.Config = viper.GetStringMap(driverName)
-	dbconfig := mysqldriver.NewDBConfig(config)
+	var config drivers.Config = viper.GetStringMap(driverName)
+	dbconfig := drivers.NewDBConfig(config)
 	output := config.DefaultString("output", "temp")
 
 	return Run(dbconfig, output)
