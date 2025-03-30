@@ -2,5 +2,5 @@ package testdata
 
 import "embed"
 
-//go:embed *.sql */*.go
+//go:embed *.sql */*.go *.go
 var Fixtures embed.FS

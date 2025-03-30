@@ -2,11 +2,11 @@ package golalib
 
 import (
 	"database/sql"
-	"path/filepath"
 	"testing"
 
 	"github.com/olachat/gola/drivers"
 	"github.com/olachat/gola/drivers/sqlite3driver"
+	"github.com/olachat/gola/golalib/testdata"
 	"github.com/olachat/gola/ormtpl"
 	"github.com/olachat/gola/structs"
 	_ "modernc.org/sqlite"
@@ -16,7 +16,7 @@ func init() {
 	memdb, _ := sql.Open("sqlite", ":memory:")
 	var err error
 
-	query, _ := fixtures.ReadFile("testdata" + string(filepath.Separator) + "sqlite.sql")
+	query, _ := testdata.Fixtures.ReadFile("sqlite.sql")
 	_, err = memdb.Exec(string(query))
 	if err != nil {
 		panic(err.Error())

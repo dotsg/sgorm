@@ -1,7 +1,6 @@
 package golalib
 
 import (
-	"embed"
 	"flag"
 	"fmt"
 	"os"
@@ -21,12 +20,11 @@ import (
 	"github.com/dolthub/go-mysql-server/sql/information_schema"
 	"github.com/olachat/gola/drivers"
 	"github.com/olachat/gola/drivers/mysqldriver"
+	"github.com/olachat/gola/golalib/testdata"
 	"github.com/olachat/gola/ormtpl"
 	"github.com/olachat/gola/structs"
 )
 
-//go:embed testdata
-var fixtures embed.FS
 var s *server.Server
 var testDBPort int = 33066
 var testDBName string = "testdata"
@@ -62,7 +60,7 @@ func init() {
 	}
 
 	for _, tableName := range testTables {
-		query, _ := fixtures.ReadFile(testDataPath + tableName + ".sql")
+		query, _ := testdata.Fixtures.ReadFile(tableName + ".sql")
 		_, err = db.Exec(string(query))
 		if err != nil {
 			panic(err.Error())
@@ -110,10 +108,9 @@ func testGen(t *testing.T, gen genMethod, data ormtpl.TplStruct) {
 		}
 	} else {
 		for path, data := range resultFiles {
-			expectedFilePath := testDataPath + path
-			expectedFile, _ := fixtures.ReadFile(expectedFilePath)
+			expectedFile, _ := testdata.Fixtures.ReadFile(path)
 			if diff := cmp.Diff(expectedFile, data); diff != "" {
-				t.Error("file different: ", expectedFilePath)
+				t.Error("file different: ", path)
 				fmt.Println(diff)
 			}
 		}
