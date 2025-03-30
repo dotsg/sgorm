@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/olachat/gola/structs"
 	"github.com/olachat/gola/drivers"
+	"github.com/olachat/gola/structs"
 	"github.com/pkg/errors"
 )
 
