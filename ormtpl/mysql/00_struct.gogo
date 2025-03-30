@@ -156,9 +156,11 @@ func (c *{{.GoName}}) Get{{.GoName}}() {{.GoType}} {
 {{ if not .IsPrimaryKey}}
 func (c *{{.GoName}}) Set{{.GoName}}(val {{.GoType}}) bool {
 {{- if ne .GoType "[]byte"}}
+	{{- if not .Nullable }}
 	if c.val == val {
 		return false
 	}
+	{{- end }}
 {{- end }}
 	c._updated = true
 	c.val = val

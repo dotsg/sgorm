@@ -37,9 +37,13 @@ func (g *CodeGen) GenPackage(db *structs.DBInfo) map[string][]byte {
 	}
 
 	for genTpl, genPath := range genFiles {
-		data, err := formatBuffer(g.GenTPL(db, genTpl))
+		code := g.GenTPL(db, genTpl)
+		data, err := formatBuffer(code)
 		if err != nil {
-			panic(db.Schema + " db code error:\n" + err.Error())
+			println(db.Schema + " db code error:\n" + err.Error())
+			files[genPath] = code
+		} else {
+			files[genPath] = data
 		}
 		files[genPath] = data
 	}
@@ -58,11 +62,14 @@ func (g *CodeGen) GenORM(t *structs.Table) map[string][]byte {
 	}
 
 	for genTpl, genPath := range genFiles {
-		data, err := formatBuffer(g.GenTPL(t, genTpl))
+		code := g.GenTPL(t, genTpl)
+		data, err := formatBuffer(code)
 		if err != nil {
-			panic(t.Name + " code error:\n" + err.Error())
+			println(t.Name + " code error:\n" + err.Error())
+			files[genPath] = code
+		} else {
+			files[genPath] = data
 		}
-		files[genPath] = data
 	}
 
 	return files

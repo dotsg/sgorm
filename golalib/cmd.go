@@ -41,18 +41,21 @@ func (*cmd) Run(args []string) int {
 	code := -1
 
 	driverName = "mysql"
+	flag := true
 	config = viper.GetStringMap(driverName)
 	if len(config) != 0 {
 		code += RunMySql(config)
+		flag = false
 	}
 
 	driverName = "sqlite"
 	config = viper.GetStringMap(driverName)
 	if len(config) != 0 {
 		code += RunSqlite(config)
+		flag = false
 	}
 
-	if code == -1 {
+	if flag {
 		println("Can't find db config")
 	}
 	return code

@@ -14,11 +14,15 @@ import (
 
 func RunSqlite(config drivers.Config) int {
 	s := &sqlite3driver.SQLiteDriver{}
-	// output := config.DefaultString("output", "temp")
+	output := config.DefaultString("output", "temp")
 
-	// db, err := s.Assemble(config)
-	s.Assemble(config)
-	return 0
+	db, err := s.Assemble(config)
+	if err != nil {
+		panic(err)
+	}
+
+	gen := &CodeGen{"mysql"}
+	return genCode(gen, db, output)
 }
 
 /*

@@ -2,6 +2,7 @@ package coredb
 
 import (
 	"strings"
+	"time"
 )
 
 // GetParamPlaceHolder returns string for param place holder in sql with given count
@@ -22,4 +23,9 @@ func GetAnySlice[T any](data []T) []any {
 	}
 
 	return result
+}
+
+func MustGetTime(layout, str string) time.Time {
+	t, _ := time.Parse(layout, str)
+	return t
 }

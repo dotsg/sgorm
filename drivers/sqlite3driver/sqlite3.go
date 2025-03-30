@@ -55,7 +55,9 @@ func (s SQLiteDriver) Assemble(config drivers.Config) (dbinfo *structs.DBInfo, e
 	}()
 
 	dbinfo = &structs.DBInfo{}
-
+	i := strings.LastIndex(dbname, "/")
+	j := strings.LastIndex(dbname, ".")
+	dbinfo.Schema = dbname[i+1 : j]
 	dbinfo.Tables, err = structs.Tables(s, dbname, whitelist, blacklist)
 	if err != nil {
 		return nil, err
@@ -294,6 +296,17 @@ ColumnLoop:
 		}
 
 		isPrimaryKeyInteger := column.Pk == 1 && bColumn.FullDBType == "INTEGER"
+
+		if column.Pk == 1 {
+			if table.PKey == nil {
+				table.PKey = &structs.PrimaryKey{}
+				table.PKey.Name = column.Name
+				table.PKey.Columns = []string{column.Name}
+			} else {
+				table.PKey.Columns = append(table.PKey.Columns, column.Name)
+			}
+		}
+
 		// This is special behavior noted in the sqlite documentation.
 		// An integer primary key becomes synonymous with the internal ROWID
 		// and acts as an auto incrementing value. Although there's important
