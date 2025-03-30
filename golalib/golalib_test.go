@@ -92,7 +92,7 @@ func getDB() *structs.DBInfo {
 
 type genMethod func(t ormtpl.TplStruct) map[string][]byte
 
-func testGen(t *testing.T, wd string, gen genMethod, data ormtpl.TplStruct) {
+func testGen(t *testing.T, gen genMethod, data ormtpl.TplStruct) {
 	resultFiles := gen(data)
 
 	if *update {
@@ -124,18 +124,13 @@ func TestCodeGen(t *testing.T) {
 	db := getDB()
 	gen := &CodeGen{"mysql"}
 
-	wd, err := os.Getwd()
-	if err != nil {
-		wd = "."
-	}
-
 	for _, table := range db.Tables {
-		testGen(t, wd, func(t ormtpl.TplStruct) map[string][]byte {
+		testGen(t, func(t ormtpl.TplStruct) map[string][]byte {
 			return gen.GenORM(t.(*structs.Table))
 		}, table)
 	}
 
-	testGen(t, wd, func(t ormtpl.TplStruct) map[string][]byte {
+	testGen(t, func(t ormtpl.TplStruct) map[string][]byte {
 		return gen.GenPackage(t.(*structs.DBInfo))
 	}, db)
 }
