@@ -256,8 +256,6 @@ func NewWithPK(val PK) *Account {
 	return c
 }
 
-const insertWithoutPK string = "INSERT IGNORE INTO `account` (`user_id`, `type`, `country_code`, `money`) values (?, ?, ?, ?)"
-
 // Insert Account struct to `account` table
 func (c *Account) Insert() error {
 	var result sql.Result

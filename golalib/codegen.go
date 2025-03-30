@@ -59,6 +59,7 @@ func (g *CodeGen) GenORM(t *structs.Table) map[string][]byte {
 	genFiles := map[string]string{
 		"00_struct.gogo":     tableFolder + t.Name + ".go",
 		"01_struct_idx.gogo": tableFolder + t.Name + "_idx.go",
+		"03_const.gogo":      tableFolder + t.Name + "_const.go",
 	}
 
 	for genTpl, genPath := range genFiles {

@@ -334,9 +334,6 @@ func NewWithPK(val uint) *Room {
 	return c
 }
 
-const insertWithoutPK string = "INSERT IGNORE INTO `room` (`group`, `lang`, `priority`, `deleted`) values (?, ?, ?, ?)"
-const insertWithPK string = "INSERT IGNORE INTO `room` (`id`, `group`, `lang`, `priority`, `deleted`) values (?, ?, ?, ?, ?)"
-
 // Insert Room struct to `room` table
 func (c *Room) Insert() error {
 	var result sql.Result

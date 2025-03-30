@@ -21,7 +21,7 @@ func RunSqlite(config drivers.Config) int {
 		panic(err)
 	}
 
-	gen := &CodeGen{"mysql"}
+	gen := &CodeGen{"sqlite"}
 	return genCode(gen, db, output)
 }
 

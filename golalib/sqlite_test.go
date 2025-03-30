@@ -41,7 +41,7 @@ func getSQLiteDB() *structs.DBInfo {
 
 func TestSQLiteCodeGen(t *testing.T) {
 	db := getSQLiteDB()
-	gen := &CodeGen{"mysql"}
+	gen := &CodeGen{"sqlite"}
 
 	for _, table := range db.Tables {
 		testGen(t, func(t ormtpl.TplStruct) map[string][]byte {

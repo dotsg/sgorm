@@ -355,8 +355,6 @@ func NewWithPK(val PK) *SongUserFavourite {
 	return c
 }
 
-const insertWithoutPK string = "INSERT IGNORE INTO `song_user_favourites` (`user_id`, `song_id`, `remark`, `is_favourite`, `created_at`, `updated_at`) values (?, ?, ?, ?, ?, ?)"
-
 // Insert SongUserFavourite struct to `song_user_favourites` table
 func (c *SongUserFavourite) Insert() error {
 	var result sql.Result

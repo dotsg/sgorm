@@ -7,12 +7,17 @@ import (
 
 //go:embed */*.gogo
 var templates embed.FS
+var tpl = template.New("tpl")
 
 // GetTpl return Template of giving path
 func GetTpl(driver, path string) *template.Template {
 	var err error
-	tpl := template.New("tpl")
-	tplStr, _ := templates.ReadFile(driver + "/" + path)
+
+	tplStr, err := templates.ReadFile(driver + "/" + path)
+	if err != nil {
+		tplStr, _ = templates.ReadFile("default/" + path)
+	}
+
 	result, err := tpl.Parse(string(tplStr))
 	if err != nil {
 		panic(err)
