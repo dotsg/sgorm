@@ -14,6 +14,8 @@ import (
 	"github.com/olachat/gola/structs"
 )
 
+var memdb *sql.DB
+
 // Assemble the db info
 func Assemble(config drivers.Config) (dbinfo *structs.DBInfo, err error) {
 	driver := &SQLiteDriver{}
@@ -26,6 +28,10 @@ type SQLiteDriver struct {
 	connStr           string
 	dbConn            *sql.DB
 	configForeignKeys []structs.ForeignKey
+}
+
+func SetMemdb(db *sql.DB) {
+	memdb = db
 }
 
 // Assemble the db info
@@ -43,7 +49,12 @@ func (s SQLiteDriver) Assemble(config drivers.Config) (dbinfo *structs.DBInfo, e
 		i = strings.LastIndex(dbfile, "\\")
 	}
 	j := strings.LastIndex(dbfile, ".")
-	dbname := dbfile[i+1 : j]
+	var dbname string
+	if j > -1 {
+		dbname = dbfile[i+1 : j]
+	} else if dbfile == ":memory:" {
+		dbname = "memory"
+	}
 
 	output := config.DefaultString("output", "temp")
 	i = strings.LastIndex(output, "/")
@@ -55,8 +66,12 @@ func (s SQLiteDriver) Assemble(config drivers.Config) (dbinfo *structs.DBInfo, e
 	whitelist, _ := config.StringSlice(structs.ConfigWhitelist)
 	blacklist, _ := config.StringSlice(structs.ConfigBlacklist)
 
-	s.connStr = SQLiteBuildQueryString(dbfile)
-	s.dbConn, err = sql.Open("sqlite", s.connStr)
+	if dbfile == ":memory:" {
+		s.dbConn = memdb
+	} else {
+		s.connStr = SQLiteBuildQueryString(dbfile)
+		s.dbConn, err = sql.Open("sqlite", s.connStr)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("sqlboiler-sqlite failed to connect to database: %w", err)
 	}
@@ -82,18 +97,6 @@ func (s SQLiteDriver) Assemble(config drivers.Config) (dbinfo *structs.DBInfo, e
 // SQLiteBuildQueryString builds a query string for SQLite.
 func SQLiteBuildQueryString(file string) string {
 	return "file:" + file + "?_loc=UTC&mode=ro"
-}
-
-// Open opens the database connection using the connection string
-func (s SQLiteDriver) Open() error {
-	var err error
-
-	s.dbConn, err = sql.Open("sqlite3", s.connStr)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Close closes the database connection
