@@ -37,11 +37,25 @@ func (s SQLiteDriver) Assemble(config drivers.Config) (dbinfo *structs.DBInfo, e
 		}
 	}()
 
-	dbname := config.MustString(structs.ConfigDBName)
+	dbfile := config.MustString(structs.ConfigDBName)
+	i := strings.LastIndex(dbfile, "/")
+	if i == -1 {
+		i = strings.LastIndex(dbfile, "\\")
+	}
+	j := strings.LastIndex(dbfile, ".")
+	dbname := dbfile[i+1 : j]
+
+	output := config.DefaultString("output", "temp")
+	i = strings.LastIndex(output, "/")
+	if i == -1 {
+		i = strings.LastIndex(output, "\\")
+	}
+	pkg := output[i+1:]
+
 	whitelist, _ := config.StringSlice(structs.ConfigWhitelist)
 	blacklist, _ := config.StringSlice(structs.ConfigBlacklist)
 
-	s.connStr = SQLiteBuildQueryString(dbname)
+	s.connStr = SQLiteBuildQueryString(dbfile)
 	s.dbConn, err = sql.Open("sqlite", s.connStr)
 	if err != nil {
 		return nil, fmt.Errorf("sqlboiler-sqlite failed to connect to database: %w", err)
@@ -55,9 +69,8 @@ func (s SQLiteDriver) Assemble(config drivers.Config) (dbinfo *structs.DBInfo, e
 	}()
 
 	dbinfo = &structs.DBInfo{}
-	i := strings.LastIndex(dbname, "/")
-	j := strings.LastIndex(dbname, ".")
-	dbinfo.Schema = dbname[i+1 : j]
+
+	dbinfo.Schema = pkg
 	dbinfo.Tables, err = structs.Tables(s, dbname, whitelist, blacklist)
 	if err != nil {
 		return nil, err
