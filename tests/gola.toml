@@ -1,5 +1,0 @@
-[sqlite]
-dbname = "test.db"
-blacklist = []
-whitelist = []
-output = "models"

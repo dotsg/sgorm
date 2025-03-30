@@ -38,6 +38,7 @@ func getSQLiteDB() *structs.DBInfo {
 	}
 	return db
 }
+
 func TestSQLiteCodeGen(t *testing.T) {
 	db := getSQLiteDB()
 	gen := &CodeGen{"mysql"}
