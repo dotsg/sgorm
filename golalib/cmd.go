@@ -35,13 +35,27 @@ func (*cmd) Run(args []string) int {
 	}
 	viper.ReadInConfig()
 	viper.AutomaticEnv()
-	driverName := "mysql"
 
-	var config drivers.Config = viper.GetStringMap(driverName)
-	dbconfig := drivers.NewDBConfig(config)
-	output := config.DefaultString("output", "temp")
+	var driverName string
+	var config drivers.Config
+	code := -1
 
-	return Run(dbconfig, output)
+	driverName = "mysql"
+	config = viper.GetStringMap(driverName)
+	if len(config) != 0 {
+		code += RunMySql(config)
+	}
+
+	driverName = "sqlite"
+	config = viper.GetStringMap(driverName)
+	if len(config) != 0 {
+		code += RunSqlite(config)
+	}
+
+	if code == -1 {
+		println("Can't find db config")
+	}
+	return code
 }
 
 func (*cmd) Synopsis() string {

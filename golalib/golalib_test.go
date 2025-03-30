@@ -4,7 +4,6 @@ import (
 	"embed"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -104,7 +103,7 @@ func testGen(t *testing.T, wd string, gen genMethod, data ormtpl.TplStruct) {
 				os.Mkdir(expectedFileFolder, os.ModePerm)
 			}
 
-			err := ioutil.WriteFile(testDataPath+path, data, 0644)
+			err := os.WriteFile(testDataPath+path, data, 0644)
 			if err != nil {
 				panic(err)
 			}
@@ -123,6 +122,7 @@ func testGen(t *testing.T, wd string, gen genMethod, data ormtpl.TplStruct) {
 
 func TestCodeGen(t *testing.T) {
 	db := getDB()
+	gen := &CodeGen{"mysql"}
 
 	wd, err := os.Getwd()
 	if err != nil {
@@ -131,12 +131,12 @@ func TestCodeGen(t *testing.T) {
 
 	for _, table := range db.Tables {
 		testGen(t, wd, func(t ormtpl.TplStruct) map[string][]byte {
-			return genORM(t.(*structs.Table))
+			return gen.GenORM(t.(*structs.Table))
 		}, table)
 	}
 
 	testGen(t, wd, func(t ormtpl.TplStruct) map[string][]byte {
-		return genPackage(t.(*structs.DBInfo))
+		return gen.GenPackage(t.(*structs.DBInfo))
 	}, db)
 }
 

@@ -5,14 +5,14 @@ import (
 	"text/template"
 )
 
-//go:embed *.go*
+//go:embed */*.gogo
 var templates embed.FS
 
 // GetTpl return Template of giving path
-func GetTpl(path string) *template.Template {
+func GetTpl(driver, path string) *template.Template {
 	var err error
 	tpl := template.New("tpl")
-	tplStr, _ := templates.ReadFile(path)
+	tplStr, _ := templates.ReadFile(driver + "/" + path)
 	result, err := tpl.Parse(string(tplStr))
 	if err != nil {
 		panic(err)
