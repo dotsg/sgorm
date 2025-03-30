@@ -212,7 +212,7 @@ func (c Column) wrapDefault() string {
 		return "[]byte(" + getQuotedStr(c.Default) + ")"
 	}
 
-	if goType == "string" || goType == "null.String" {
+	if goType == "string" || goType == "null.String" || c.IsEnum() {
 		return getQuotedStr(c.Default)
 	}
 	if strings.HasPrefix(strings.ToLower(c.Default), "current_timestamp") {
@@ -252,7 +252,7 @@ func (c Column) GoDefaultValue() string {
 		if strings.HasPrefix(lowerCaseNoSpaceDefault, "(") && strings.HasSuffix(lowerCaseNoSpaceDefault, ")") {
 			return lowerCaseNoSpaceDefault[1 : len(lowerCaseNoSpaceDefault)-1]
 		}
-		return c.wrapDefault()
+		return getQuotedStr(c.wrapDefault())
 	}
 
 	if goType == "time.Time" {

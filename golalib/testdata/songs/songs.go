@@ -242,9 +242,6 @@ func (c *Type) GetType() SongType {
 }
 
 func (c *Type) SetType(val SongType) bool {
-	if c.val == val {
-		return false
-	}
 	c._updated = true
 	c.val = val
 	return true
@@ -337,9 +334,6 @@ func (c *Remark) GetRemark() null.String {
 }
 
 func (c *Remark) SetRemark(val null.String) bool {
-	if c.val == val {
-		return false
-	}
 	c._updated = true
 	c.val = val
 	return true

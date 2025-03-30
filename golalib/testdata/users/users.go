@@ -737,8 +737,8 @@ func New() *User {
 		DoubleType{val: float64(0)},
 		Hobby{val: "swimming"},
 		HobbyNoDefault{},
-		Sports{val: "swim, football"},
-		Sports2{val: "swim,football"},
+		Sports{val: "SWIM, FOOTBALL"},
+		Sports2{val: "SWIM,FOOTBALL"},
 		SportsNoDefault{},
 	}
 }
@@ -756,8 +756,8 @@ func NewWithPK(val int) *User {
 		DoubleType{val: float64(0)},
 		Hobby{val: "swimming"},
 		HobbyNoDefault{},
-		Sports{val: "swim, football"},
-		Sports2{val: "swim,football"},
+		Sports{val: "SWIM, FOOTBALL"},
+		Sports2{val: "SWIM,FOOTBALL"},
 		SportsNoDefault{},
 	}
 	c.Id.val = val
