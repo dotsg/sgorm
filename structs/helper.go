@@ -52,3 +52,15 @@ func setInclude(str string, slice []string) bool {
 
 	return false
 }
+
+func FilterBy[T any](items []*T, isNeeded func(item *T) bool) []*T {
+	result := make([]*T, 0, len(items))
+
+	for _, item := range items {
+		if isNeeded(item) {
+			result = append(result, item)
+		}
+	}
+
+	return result
+}

@@ -1,8 +1,6 @@
 package mysqldriver
 
 import (
-	"sort"
-
 	"github.com/olachat/gola/structs"
 )
 
@@ -67,7 +65,7 @@ func (m *MySQLDriver) SetIndexAndKey(tables []*structs.Table) (err error) {
 			}
 		}
 
-		t.Indexes = groupIndex(indexDesc)
+		t.Indexes = structs.GroupIndex(indexDesc)
 
 		// Hack to handle table without primary key, but has only one unique key
 		// Just consider that unique key as primary
@@ -101,42 +99,4 @@ func (m *MySQLDriver) SetIndexAndKey(tables []*structs.Table) (err error) {
 	}
 
 	return nil
-}
-
-func filterBy[T any](items []*T, isNeeded func(item *T) bool) []*T {
-	result := make([]*T, 0, len(items))
-
-	for _, item := range items {
-		if isNeeded(item) {
-			result = append(result, item)
-		}
-	}
-
-	return result
-}
-
-func groupIndex(indexDesc []*structs.IndexDesc) map[string][]*structs.IndexDesc {
-	data := make(map[string][]*structs.IndexDesc, 0)
-
-	for _, idx := range indexDesc {
-		key := idx.KeyName
-		if _, ok := data[key]; !ok {
-			data[key] = []*structs.IndexDesc{}
-		}
-	}
-
-	for name := range data {
-		items := filterBy(indexDesc, func(item *structs.IndexDesc) bool {
-			return item.KeyName == name
-		})
-
-		sort.Slice(items, func(i, j int) bool {
-			return items[i].SeqInIndex < items[j].SeqInIndex
-		})
-
-		data[name] = items
-
-	}
-
-	return data
 }
