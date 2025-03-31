@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/mitchellh/cli"
-	"github.com/olachat/gola/mysqldriver"
+	"github.com/olachat/gola/drivers"
 	"github.com/spf13/viper"
 )
 
@@ -35,13 +35,30 @@ func (*cmd) Run(args []string) int {
 	}
 	viper.ReadInConfig()
 	viper.AutomaticEnv()
-	driverName := "mysql"
 
-	var config mysqldriver.Config = viper.GetStringMap(driverName)
-	dbconfig := mysqldriver.NewDBConfig(config)
-	output := config.DefaultString("output", "temp")
+	var driverName string
+	var config drivers.Config
+	code := -1
 
-	return Run(dbconfig, output)
+	driverName = "mysql"
+	flag := true
+	config = viper.GetStringMap(driverName)
+	if len(config) != 0 {
+		code += RunMySql(config)
+		flag = false
+	}
+
+	driverName = "sqlite"
+	config = viper.GetStringMap(driverName)
+	if len(config) != 0 {
+		code += RunSqlite(config)
+		flag = false
+	}
+
+	if flag {
+		println("Can't find db config")
+	}
+	return code
 }
 
 func (*cmd) Synopsis() string {

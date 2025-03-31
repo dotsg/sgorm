@@ -1,38 +1,50 @@
 package golalib
 
 import (
-	"bufio"
-	"bytes"
-	"errors"
 	"fmt"
-	"go/format"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strconv"
 	"strings"
 
-	"github.com/olachat/gola/mysqldriver"
-	"github.com/olachat/gola/ormtpl"
+	"github.com/olachat/gola/drivers"
+	"github.com/olachat/gola/drivers/mysqldriver"
+	"github.com/olachat/gola/drivers/sqlite3driver"
 	"github.com/olachat/gola/structs"
 )
 
-/*Run gola to perform code gen
+func RunSqlite(config drivers.Config) int {
+	s := &sqlite3driver.SQLiteDriver{}
+	output := config.DefaultString("output", "temp")
 
-`output`: output folder path
-*/
-func Run(config mysqldriver.DBConfig, output string) int {
-	m := &mysqldriver.MySQLDriver{}
-	db, err := m.Assemble(config)
+	db, err := s.Assemble(config)
 	if err != nil {
 		panic(err)
 	}
 
-	if output == "" {
-		output = "temp"
+	gen := &CodeGen{"sqlite"}
+	return genCode(gen, db, output)
+}
+
+/*
+Run gola to perform code gen for MySql
+
+`output`: output folder path
+*/
+func RunMySql(config drivers.Config) int {
+	dbconfig := drivers.NewDBConfig(config)
+	output := config.DefaultString("output", "temp")
+
+	m := &mysqldriver.MySQLDriver{}
+	db, err := m.Assemble(dbconfig)
+	if err != nil {
+		panic(err)
 	}
 
+	gen := &CodeGen{"mysql"}
+	return genCode(gen, db, output)
+}
+
+func genCode(gen *CodeGen, db *structs.DBInfo, output string) int {
 	if !strings.HasPrefix(output, "/") {
 		// output folder is relative path
 		wd, err := os.Getwd()
@@ -52,13 +64,13 @@ func Run(config mysqldriver.DBConfig, output string) int {
 			continue
 		}
 
-		files := genORM(t)
+		files := gen.GenORM(t)
 		needMkdir := true
 		for path, data := range files {
 			if needMkdir {
 				pos := strings.LastIndex(path, string(filepath.Separator))
 				expectedFileFolder := output + path[0:pos]
-				err = os.Mkdir(expectedFileFolder, os.ModePerm)
+				err := os.Mkdir(expectedFileFolder, os.ModePerm)
 				if err != nil && os.IsNotExist(err) {
 					println("Failed to create folder, please ensure " + output[:len(output)-1] + " exists")
 					return 1
@@ -66,101 +78,15 @@ func Run(config mysqldriver.DBConfig, output string) int {
 				needMkdir = false
 			}
 
-			ioutil.WriteFile(output+path, data, 0644)
+			os.WriteFile(output+path, data, 0644)
 		}
 	}
 
-	files := genPackage(db)
+	files := gen.GenPackage(db)
 	for path, data := range files {
-		ioutil.WriteFile(output+path, data, 0644)
+		os.WriteFile(output+path, data, 0644)
 	}
 
 	fmt.Printf("code generated in %s\n", output[:len(output)-1])
 	return 0
-}
-
-func genTPL(t ormtpl.TplStruct, tplName string) []byte {
-	buf := bytes.NewBufferString("")
-	t.SetVersion(VERSION)
-	err := ormtpl.GetTpl(tplName).Execute(buf, t)
-	if err != nil {
-		panic(t.GetName() + " " + tplName +
-			" genTpl error:\n" + err.Error())
-	}
-	return buf.Bytes()
-}
-
-func genPackage(db *structs.DBInfo) map[string][]byte {
-	files := make(map[string][]byte)
-
-	genFiles := map[string]string{
-		"02_package.gogo": db.Schema + "_goladb.go",
-	}
-
-	for genTpl, genPath := range genFiles {
-		data, err := formatBuffer(genTPL(db, genTpl))
-		if err != nil {
-			panic(db.Schema + " db code error:\n" + err.Error())
-		}
-		files[genPath] = data
-	}
-
-	return files
-}
-
-func genORM(t *structs.Table) map[string][]byte {
-	files := make(map[string][]byte)
-
-	tableFolder := t.Name + string(filepath.Separator)
-
-	genFiles := map[string]string{
-		"00_struct.gogo":     tableFolder + t.Name + ".go",
-		"01_struct_idx.gogo": tableFolder + t.Name + "_idx.go",
-	}
-
-	for genTpl, genPath := range genFiles {
-		data, err := formatBuffer(genTPL(t, genTpl))
-		if err != nil {
-			panic(t.Name + " code error:\n" + err.Error())
-		}
-		files[genPath] = data
-	}
-
-	return files
-}
-
-var (
-	rgxSyntaxError = regexp.MustCompile(`(\d+):\d+: `)
-)
-
-func formatBuffer(buf []byte) ([]byte, error) {
-	output, err := format.Source(buf)
-	if err == nil {
-		return output, nil
-	}
-
-	matches := rgxSyntaxError.FindStringSubmatch(err.Error())
-	if matches == nil {
-		panic(errors.New("failed to format template: " + err.Error()))
-	}
-
-	lineNum, _ := strconv.Atoi(matches[1])
-	scanner := bufio.NewScanner(bytes.NewReader(buf))
-	errBuf := &bytes.Buffer{}
-	line := 1
-	for ; scanner.Scan(); line++ {
-		if delta := line - lineNum; delta < -5 || delta > 5 {
-			continue
-		}
-
-		if line == lineNum {
-			errBuf.WriteString(">>>> ")
-		} else {
-			fmt.Fprintf(errBuf, "% 4d ", line)
-		}
-		errBuf.Write(scanner.Bytes())
-		errBuf.WriteByte('\n')
-	}
-
-	return nil, fmt.Errorf("failed to format template\n\n%s", errBuf.Bytes())
 }

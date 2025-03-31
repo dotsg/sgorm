@@ -43,6 +43,20 @@ type Column struct {
 }
 
 var dbTypeToGoTypes = map[string]string{
+	"bool":               "bool",
+	"boolean":            "bool",
+	"date":               "time.Time",
+	"datetime":           "time.Time",
+	"time":               "time.Time",
+	"tinyblob":           "[]byte",
+	"mediumblob":         "[]byte",
+	"longblob":           "[]byte",
+	"blob":               "[]byte",
+	"double precision":   "float64",
+	"real":               "float32",
+	"numeric":            "float32",
+	"json":               "string",
+	"integer":            "int",
 	"tinyint":            "int8",
 	"smallint":           "int16",
 	"mediumint":          "int",
@@ -57,14 +71,43 @@ var dbTypeToGoTypes = map[string]string{
 	"double":             "float64",
 }
 
+var nullTypes = map[string]string{
+	"[]byte":    "null.Bytes",
+	"string":    "null.String",
+	"byte":      "null.Byte",
+	"bool":      "null.Bool",
+	"time.Time": "null.Time",
+	"float32":   "null.Float32",
+	"float64":   "null.Float64",
+	"int":       "null.Int",
+	"int8":      "null.Int8",
+	"int16":     "null.Int16",
+	"int32":     "null.Int32",
+	"int64":     "null.Int64",
+	"uint":      "null.Uint",
+	"uint8":     "null.Uint8",
+	"uint16":    "null.Uint16",
+	"uint32":    "null.Uint32",
+	"uint64":    "null.Uint64",
+}
+
 // GoType returns type in go of the column
 func (c Column) GoType() string {
+	c.FullDBType = strings.ToLower(c.FullDBType)
+	c.DBType = strings.ToLower(c.DBType)
+
 	if c.FullDBType == "tinyint(1)" {
+		if c.Nullable {
+			return nullTypes["bool"]
+		}
 		return "bool"
 	}
 
 	for dbType, goType := range dbTypeToGoTypes {
 		if c.DBType == dbType || strings.HasPrefix(c.DBType, dbType+"(") {
+			if c.Nullable {
+				return nullTypes[goType]
+			}
 			return goType
 		}
 	}
@@ -77,6 +120,9 @@ func (c Column) GoType() string {
 	}
 
 	if strings.HasPrefix(c.DBType, "varbinary") || strings.HasPrefix(c.DBType, "binary") {
+		if c.Nullable {
+			return nullTypes["[]byte"]
+		}
 		return "[]byte"
 	}
 
@@ -93,14 +139,23 @@ func (c Column) GoType() string {
 	}
 
 	if strings.HasPrefix(c.DBType, "set") {
+		if c.Nullable {
+			return "null.String"
+		}
 		return "string"
 	}
 
 	if strings.Contains(c.DBType, "text") || strings.HasPrefix(c.DBType, "blob") {
+		if c.Nullable {
+			return "null.String"
+		}
 		return "string"
 	}
 
 	if strings.HasPrefix(c.DBType, "timestamp") {
+		if c.Nullable {
+			return nullTypes["time.Time"]
+		}
 		return "time.Time"
 	}
 
@@ -109,12 +164,12 @@ func (c Column) GoType() string {
 
 // GoTypeNotNull returns type in go of the column as it's not nullable
 func (c Column) GoTypeNotNull() string {
-	t := c.GoType()
-	if t == "null.String" {
-		return "string"
+	if c.Nullable {
+		c2 := c
+		c2.Nullable = false
+		return c2.GoType()
 	}
-
-	return t
+	return c.GoType()
 }
 
 // GoName returns the variable name for go of the column
@@ -144,29 +199,64 @@ func getQuotedStr(str string) string {
 	if strings.HasPrefix(str, "\"") && strings.HasSuffix(str, "\"") {
 		return str
 	}
+
+	if strings.HasPrefix(str, "'") && strings.HasSuffix(str, "'") {
+		return strings.ReplaceAll(str, `'`, `"`)
+	}
 	return "\"" + str + "\""
+}
+
+func (c Column) wrapDefault() string {
+	goType := c.GoType()
+	if goType == "[]byte" || goType == "null.Bytes" {
+		return "[]byte(" + getQuotedStr(c.Default) + ")"
+	}
+
+	if goType == "string" || goType == "null.String" || c.IsEnum() {
+		return getQuotedStr(c.Default)
+	}
+	if strings.HasPrefix(strings.ToLower(c.Default), "current_timestamp") {
+		return "time.Now()"
+	}
+
+	if goType == "time.Time" || goType == "null.Time" {
+		if strings.Contains(c.Default, "-") {
+			return "coredb.MustGetTime(\"2006-01-02\", " + getQuotedStr(c.Default) + ")"
+		}
+
+		return "coredb.MustGetTime(\"20060102\", " + getQuotedStr(c.Default) + ")"
+	}
+	return c.Default
 }
 
 // GoDefaultValue returns the go value of column's default value
 func (c Column) GoDefaultValue() string {
 	goType := c.GoType()
-	lowerCaseDefault := strings.ToLower(c.Default)
-	if goType == "string" || c.IsEnum() {
-		return getQuotedStr(lowerCaseDefault)
+	c.DBType = strings.ToLower(c.DBType)
+
+	if c.Nullable {
+		if c.Default == "NULL" || c.Default == "null" {
+			return goType + "FromPtr(nil)"
+		} else {
+			return goType + "From(" + c.wrapDefault() + ")"
+		}
 	}
-	if goType == "string" || c.IsSet() {
+
+	lowerCaseDefault := strings.ToLower(c.Default)
+	if goType == "string" || goType == "[]byte" || c.IsEnum() {
+		return c.wrapDefault()
+	}
+
+	if c.IsSet() {
 		lowerCaseNoSpaceDefault := strings.ReplaceAll(lowerCaseDefault, " ", "")
 		if strings.HasPrefix(lowerCaseNoSpaceDefault, "(") && strings.HasSuffix(lowerCaseNoSpaceDefault, ")") {
 			return lowerCaseNoSpaceDefault[1 : len(lowerCaseNoSpaceDefault)-1]
 		}
-		return getQuotedStr(lowerCaseDefault)
+		return getQuotedStr(c.wrapDefault())
 	}
 
 	if goType == "time.Time" {
-		if strings.Contains(c.Default, "CURRENT_TIMESTAMP") {
-			return "time.Now()"
-		}
-		return c.Default
+		return c.wrapDefault()
 	}
 
 	if goType == "bool" {

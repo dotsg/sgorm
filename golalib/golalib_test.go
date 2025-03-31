@@ -1,10 +1,8 @@
 package golalib
 
 import (
-	"embed"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,13 +18,13 @@ import (
 	"github.com/dolthub/go-mysql-server/server"
 	gsql "github.com/dolthub/go-mysql-server/sql"
 	"github.com/dolthub/go-mysql-server/sql/information_schema"
-	"github.com/olachat/gola/mysqldriver"
+	"github.com/olachat/gola/drivers"
+	"github.com/olachat/gola/drivers/mysqldriver"
+	"github.com/olachat/gola/golalib/testdata"
 	"github.com/olachat/gola/ormtpl"
 	"github.com/olachat/gola/structs"
 )
 
-//go:embed testdata
-var fixtures embed.FS
 var s *server.Server
 var testDBPort int = 33066
 var testDBName string = "testdata"
@@ -62,7 +60,7 @@ func init() {
 	}
 
 	for _, tableName := range testTables {
-		query, _ := fixtures.ReadFile(testDataPath + tableName + ".sql")
+		query, _ := testdata.Fixtures.ReadFile(tableName + ".sql")
 		_, err = db.Exec(string(query))
 		if err != nil {
 			panic(err.Error())
@@ -71,7 +69,7 @@ func init() {
 }
 
 func getDB() *structs.DBInfo {
-	var config mysqldriver.Config = map[string]any{
+	var config drivers.Config = map[string]any{
 		"dbname":    testDBName,
 		"whitelist": "blogs",
 		"host":      "localhost",
@@ -80,7 +78,7 @@ func getDB() *structs.DBInfo {
 		"pass":      "",
 		"sslmode":   "false",
 	}
-	dbconfig := mysqldriver.NewDBConfig(config)
+	dbconfig := drivers.NewDBConfig(config)
 
 	m := &mysqldriver.MySQLDriver{}
 	db, err := m.Assemble(dbconfig)
@@ -92,7 +90,7 @@ func getDB() *structs.DBInfo {
 
 type genMethod func(t ormtpl.TplStruct) map[string][]byte
 
-func testGen(t *testing.T, wd string, gen genMethod, data ormtpl.TplStruct) {
+func testGen(t *testing.T, gen genMethod, data ormtpl.TplStruct) {
 	resultFiles := gen(data)
 
 	if *update {
@@ -103,17 +101,16 @@ func testGen(t *testing.T, wd string, gen genMethod, data ormtpl.TplStruct) {
 				os.Mkdir(expectedFileFolder, os.ModePerm)
 			}
 
-			err := ioutil.WriteFile(testDataPath+path, data, 0644)
+			err := os.WriteFile(testDataPath+path, data, 0644)
 			if err != nil {
 				panic(err)
 			}
 		}
 	} else {
 		for path, data := range resultFiles {
-			expectedFilePath := testDataPath + path
-			expectedFile, _ := fixtures.ReadFile(expectedFilePath)
+			expectedFile, _ := testdata.Fixtures.ReadFile(path)
 			if diff := cmp.Diff(expectedFile, data); diff != "" {
-				t.Error("file different: ", expectedFilePath)
+				t.Error("file different: ", path)
 				fmt.Println(diff)
 			}
 		}
@@ -122,20 +119,16 @@ func testGen(t *testing.T, wd string, gen genMethod, data ormtpl.TplStruct) {
 
 func TestCodeGen(t *testing.T) {
 	db := getDB()
-
-	wd, err := os.Getwd()
-	if err != nil {
-		wd = "."
-	}
+	gen := &CodeGen{"mysql"}
 
 	for _, table := range db.Tables {
-		testGen(t, wd, func(t ormtpl.TplStruct) map[string][]byte {
-			return genORM(t.(*structs.Table))
+		testGen(t, func(t ormtpl.TplStruct) map[string][]byte {
+			return gen.GenORM(t.(*structs.Table))
 		}, table)
 	}
 
-	testGen(t, wd, func(t ormtpl.TplStruct) map[string][]byte {
-		return genPackage(t.(*structs.DBInfo))
+	testGen(t, func(t ormtpl.TplStruct) map[string][]byte {
+		return gen.GenPackage(t.(*structs.DBInfo))
 	}, db)
 }
 

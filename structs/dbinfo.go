@@ -10,21 +10,21 @@ type DBInfo struct {
 }
 
 // SetVersion for code gen
-func (t *DBInfo) SetVersion(version string) {
-	t.version = version
+func (db *DBInfo) SetVersion(version string) {
+	db.version = version
 }
 
 // GetVersion for code gen
-func (t *DBInfo) GetVersion() string {
-	return t.version
+func (db *DBInfo) GetVersion() string {
+	return db.version
 }
 
 // GetName for code gen
-func (t *DBInfo) GetName() string {
-	return t.Schema
+func (db *DBInfo) GetName() string {
+	return db.Schema
 }
 
 // Package returns package name
-func (t *DBInfo) Package() string {
-	return strings.ToLower(t.Schema)
+func (db *DBInfo) Package() string {
+	return strings.ToLower(db.Schema)
 }

@@ -1,5 +1,7 @@
 package structs
 
+import "sort"
+
 /*
 desc users;
 +------------+--------------+------+------+---------+----------------+
@@ -32,4 +34,30 @@ show index from users;
 type IndexDesc struct {
 	Table, KeyName, ColumnName, Collation, SubPart, Packed, Null, IndexType, Comment, IndexComment, Visible, Expression string
 	NonUnique, SeqInIndex, Cardinality                                                                                  int
+}
+
+func GroupIndex(indexDesc []*IndexDesc) map[string][]*IndexDesc {
+	data := make(map[string][]*IndexDesc, 0)
+
+	for _, idx := range indexDesc {
+		key := idx.KeyName
+		if _, ok := data[key]; !ok {
+			data[key] = []*IndexDesc{}
+		}
+	}
+
+	for name := range data {
+		items := FilterBy(indexDesc, func(item *IndexDesc) bool {
+			return item.KeyName == name
+		})
+
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].SeqInIndex < items[j].SeqInIndex
+		})
+
+		data[name] = items
+
+	}
+
+	return data
 }

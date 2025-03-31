@@ -9,13 +9,14 @@ import (
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/olachat/gola/drivers"
 	"github.com/olachat/gola/structs"
 	"github.com/pkg/errors"
 )
 
 // Assemble is more useful for calling into the library so you don't
 // have to instantiate an empty type.
-func Assemble(config DBConfig) (dbinfo *structs.DBInfo, err error) {
+func Assemble(config drivers.DBConfig) (dbinfo *structs.DBInfo, err error) {
 	driver := MySQLDriver{}
 	return driver.Assemble(config)
 }
@@ -28,7 +29,7 @@ type MySQLDriver struct {
 }
 
 // Assemble all the information we need to provide back to the driver
-func (m *MySQLDriver) Assemble(c DBConfig) (dbinfo *structs.DBInfo, err error) {
+func (m *MySQLDriver) Assemble(c drivers.DBConfig) (dbinfo *structs.DBInfo, err error) {
 	defer func() {
 		if r := recover(); r != nil && err == nil {
 			dbinfo = nil
@@ -36,7 +37,7 @@ func (m *MySQLDriver) Assemble(c DBConfig) (dbinfo *structs.DBInfo, err error) {
 		}
 	}()
 
-	m.connStr = MySQLBuildQueryString(c.user, c.pass, c.dbname, c.host, c.port, c.sslmode)
+	m.connStr = MySQLBuildQueryString(c.User, c.Pass, c.Dbname, c.Host, c.Port, c.Sslmode)
 	m.conn, err = sql.Open("mysql", m.connStr)
 	if err != nil {
 		return nil, errors.Wrap(err, "sqlboiler-mysql failed to connect to database")
@@ -51,8 +52,8 @@ func (m *MySQLDriver) Assemble(c DBConfig) (dbinfo *structs.DBInfo, err error) {
 
 	dbinfo = &structs.DBInfo{}
 
-	dbinfo.Schema = c.dbname
-	dbinfo.Tables, err = structs.Tables(m, c.dbname, c.whitelist, c.blacklist)
+	dbinfo.Schema = c.Dbname
+	dbinfo.Tables, err = structs.Tables(m, c.Dbname, c.Whitelist, c.Blacklist)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +94,7 @@ func (m *MySQLDriver) TableNames(schema string, whitelist, blacklist []string) (
 	query := `select table_name from information_schema.tables where table_schema = ? and table_type = 'BASE TABLE'`
 	args := []interface{}{schema}
 	if len(whitelist) > 0 {
-		tables := TablesFromList(whitelist)
+		tables := drivers.TablesFromList(whitelist)
 		if len(tables) > 0 {
 			query += fmt.Sprintf(" and table_name in (%s)", strings.Repeat(",?", len(tables))[1:])
 			for _, w := range tables {
@@ -101,7 +102,7 @@ func (m *MySQLDriver) TableNames(schema string, whitelist, blacklist []string) (
 			}
 		}
 	} else if len(blacklist) > 0 {
-		tables := TablesFromList(blacklist)
+		tables := drivers.TablesFromList(blacklist)
 		if len(tables) > 0 {
 			query += fmt.Sprintf(" and table_name not in (%s)", strings.Repeat(",?", len(tables))[1:])
 			for _, b := range tables {
@@ -155,7 +156,7 @@ func (m *MySQLDriver) Columns(schema string, table *structs.Table, tableName str
 	where table_name = ? and table_schema = ? and c.extra not like '%VIRTUAL%'`
 
 	if len(whitelist) > 0 {
-		cols := ColumnsFromList(whitelist, tableName)
+		cols := drivers.ColumnsFromList(whitelist, tableName)
 		if len(cols) > 0 {
 			query += fmt.Sprintf(" and c.column_name in (%s)", strings.Repeat(",?", len(cols))[1:])
 			for _, w := range cols {
@@ -163,7 +164,7 @@ func (m *MySQLDriver) Columns(schema string, table *structs.Table, tableName str
 			}
 		}
 	} else if len(blacklist) > 0 {
-		cols := ColumnsFromList(blacklist, tableName)
+		cols := drivers.ColumnsFromList(blacklist, tableName)
 		if len(cols) > 0 {
 			query += fmt.Sprintf(" and c.column_name not in (%s)", strings.Repeat(",?", len(cols))[1:])
 			for _, w := range cols {

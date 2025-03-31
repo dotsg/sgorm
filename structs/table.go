@@ -249,7 +249,7 @@ func (t *Table) Imports() string {
 			packages[`"time"`] = true
 		}
 
-		if t == "null.String" {
+		if c.Nullable {
 			packages[`"github.com/volatiletech/null/v8"`] = true
 		}
 	}

@@ -106,7 +106,6 @@ const (
 )
 
 // Id field
-//
 type Id struct {
 	isAssigned bool
 	val        uint
@@ -233,7 +232,6 @@ func (c *Rank) UnmarshalJSON(data []byte) error {
 }
 
 // Type field
-//
 type Type struct {
 	_updated bool
 	val      SongType
@@ -244,9 +242,6 @@ func (c *Type) GetType() SongType {
 }
 
 func (c *Type) SetType(val SongType) bool {
-	if c.val == val {
-		return false
-	}
 	c._updated = true
 	c.val = val
 	return true
@@ -329,7 +324,6 @@ func (c *Hash) UnmarshalJSON(data []byte) error {
 }
 
 // Remark field
-//
 type Remark struct {
 	_updated bool
 	val      null.String
@@ -340,9 +334,6 @@ func (c *Remark) GetRemark() null.String {
 }
 
 func (c *Remark) SetRemark(val null.String) bool {
-	if c.val == val {
-		return false
-	}
 	c._updated = true
 	c.val = val
 	return true
@@ -377,7 +368,6 @@ func (c *Remark) UnmarshalJSON(data []byte) error {
 }
 
 // Manifest field
-//
 type Manifest struct {
 	_updated bool
 	val      []byte
@@ -450,9 +440,6 @@ func NewWithPK(val uint) *Song {
 	c.Id.isAssigned = true
 	return c
 }
-
-const insertWithoutPK string = "INSERT IGNORE INTO `songs` (`title`, `rank`, `type`, `hash`, `remark`, `manifest`) values (?, ?, ?, ?, ?, ?)"
-const insertWithPK string = "INSERT IGNORE INTO `songs` (`id`, `title`, `rank`, `type`, `hash`, `remark`, `manifest`) values (?, ?, ?, ?, ?, ?, ?)"
 
 // Insert Song struct to `songs` table
 func (c *Song) Insert() error {

@@ -88,7 +88,6 @@ const (
 )
 
 // UserId field
-//
 type UserId struct {
 	val int
 }
@@ -256,8 +255,6 @@ func NewWithPK(val PK) *Account {
 	c.CountryCode.val = val.CountryCode
 	return c
 }
-
-const insertWithoutPK string = "INSERT IGNORE INTO `account` (`user_id`, `type`, `country_code`, `money`) values (?, ?, ?, ?)"
 
 // Insert Account struct to `account` table
 func (c *Account) Insert() error {

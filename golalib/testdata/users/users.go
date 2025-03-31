@@ -153,7 +153,6 @@ const (
 )
 
 // Id field
-//
 type Id struct {
 	isAssigned bool
 	val        int
@@ -738,8 +737,8 @@ func New() *User {
 		DoubleType{val: float64(0)},
 		Hobby{val: "swimming"},
 		HobbyNoDefault{},
-		Sports{val: "swim, football"},
-		Sports2{val: "swim,football"},
+		Sports{val: "SWIM, FOOTBALL"},
+		Sports2{val: "SWIM,FOOTBALL"},
 		SportsNoDefault{},
 	}
 }
@@ -757,17 +756,14 @@ func NewWithPK(val int) *User {
 		DoubleType{val: float64(0)},
 		Hobby{val: "swimming"},
 		HobbyNoDefault{},
-		Sports{val: "swim, football"},
-		Sports2{val: "swim,football"},
+		Sports{val: "SWIM, FOOTBALL"},
+		Sports2{val: "SWIM,FOOTBALL"},
 		SportsNoDefault{},
 	}
 	c.Id.val = val
 	c.Id.isAssigned = true
 	return c
 }
-
-const insertWithoutPK string = "INSERT IGNORE INTO `users` (`name`, `email`, `created_at`, `updated_at`, `float_type`, `double_type`, `hobby`, `hobby_no_default`, `sports`, `sports2`, `sports_no_default`) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-const insertWithPK string = "INSERT IGNORE INTO `users` (`id`, `name`, `email`, `created_at`, `updated_at`, `float_type`, `double_type`, `hobby`, `hobby_no_default`, `sports`, `sports2`, `sports_no_default`) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 // Insert User struct to `users` table
 func (c *User) Insert() error {

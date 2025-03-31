@@ -114,6 +114,12 @@ dbname = "testdb"
 blacklist = []
 whitelist = ["blogs"]
 output = "models"
+
+[sqlite]
+dbname = "test.db"
+blacklist = []
+whitelist = []
+output = "models"
 ```
 
 `gola gen` will then generate orm codes for `blogs` table into `models` folder.

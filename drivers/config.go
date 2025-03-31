@@ -1,4 +1,4 @@
-package mysqldriver
+package drivers
 
 import (
 	"strconv"
@@ -10,27 +10,27 @@ import (
 
 // DBConfig define db config value needed
 type DBConfig struct {
-	user      string
-	pass      string
-	dbname    string
-	host      string
-	port      int
-	sslmode   string
-	whitelist []string
-	blacklist []string
+	User      string
+	Pass      string
+	Dbname    string
+	Host      string
+	Port      int
+	Sslmode   string
+	Whitelist []string
+	Blacklist []string
 }
 
 // NewDBConfig convert Config obj(read via viper) to DBConfig
 func NewDBConfig(config Config) DBConfig {
 	c := DBConfig{}
-	c.user = config.MustString(structs.ConfigUser)
-	c.pass, _ = config.String(structs.ConfigPass)
-	c.dbname = config.MustString(structs.ConfigDBName)
-	c.host = config.MustString(structs.ConfigHost)
-	c.port = config.DefaultInt(structs.ConfigPort, 3306)
-	c.sslmode = config.DefaultString(structs.ConfigSSLMode, "true")
-	c.whitelist, _ = config.StringSlice(structs.ConfigWhitelist)
-	c.blacklist, _ = config.StringSlice(structs.ConfigBlacklist)
+	c.User = config.MustString(structs.ConfigUser)
+	c.Pass, _ = config.String(structs.ConfigPass)
+	c.Dbname = config.MustString(structs.ConfigDBName)
+	c.Host = config.MustString(structs.ConfigHost)
+	c.Port = config.DefaultInt(structs.ConfigPort, 3306)
+	c.Sslmode = config.DefaultString(structs.ConfigSSLMode, "true")
+	c.Whitelist, _ = config.StringSlice(structs.ConfigWhitelist)
+	c.Blacklist, _ = config.StringSlice(structs.ConfigBlacklist)
 
 	return c
 }
