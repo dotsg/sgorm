@@ -138,3 +138,5 @@ CREATE TABLE "myusers" (
 	"create_dt"	NUMERIC,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
+
+CREATE INDEX idx_last_name ON "myusers"(age);
