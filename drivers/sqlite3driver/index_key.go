@@ -8,7 +8,6 @@ import (
 
 func (s SQLiteDriver) SetIndexAndKey(tables []*structs.Table) (err error) {
 	for _, t := range tables {
-		println("table", t.Name)
 		idxs, err := s.indexes(t.Name)
 		if err != nil {
 			return err
@@ -24,9 +23,7 @@ func (s SQLiteDriver) SetIndexAndKey(tables []*structs.Table) (err error) {
 			if strings.HasPrefix(idx.Name, "sqlite_autoindex") {
 				continue
 			}
-			println("index", idx.Name, len(idx.Columns), idx.Origin)
 			for _, col := range idx.Columns {
-				println("index col", col)
 				item := new(structs.IndexDesc)
 				item.Table = t.Name
 				item.SeqInIndex = idx.SeqNum

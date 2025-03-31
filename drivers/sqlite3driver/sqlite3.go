@@ -196,16 +196,19 @@ func (s SQLiteDriver) indexes(tableName string) ([]*sqliteIndex, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
 	for rows.Next() {
 		var idx = &sqliteIndex{}
-		var columns []string
 		if err := rows.Scan(&idx.SeqNum, &idx.Name, &idx.Unique, &idx.Origin, &idx.Partial); err != nil {
 			return nil, err
 		}
-		// get all columns stored within the index
-		rowsColumns, err := s.dbConn.Query(fmt.Sprintf("PRAGMA index_info('%s')", idx.Name))
+		ret = append(ret, idx)
+	}
+	rows.Close()
+
+	for _, idx := range ret {
+		var columns []string
+		rowsColumns, err := s.dbConn.Query(fmt.Sprintf("PRAGMA index_info('%s');", idx.Name))
 		if err != nil {
 			return nil, err
 		}
@@ -219,7 +222,6 @@ func (s SQLiteDriver) indexes(tableName string) ([]*sqliteIndex, error) {
 		}
 		rowsColumns.Close()
 		idx.Columns = columns
-		ret = append(ret, idx)
 	}
 	return ret, nil
 }

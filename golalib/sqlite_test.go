@@ -27,7 +27,7 @@ func init() {
 
 func getSQLiteDB() *structs.DBInfo {
 	var config drivers.Config = map[string]any{
-		"dbname": "../tests/memory.db",
+		"dbname": ":memory:",
 		"output": "testdata",
 	}
 
