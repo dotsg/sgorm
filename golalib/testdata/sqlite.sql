@@ -139,4 +139,4 @@ CREATE TABLE "myusers" (
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 
-CREATE INDEX idx_last_name ON "myusers"(age);
+CREATE INDEX idx_myusers_age ON "myusers"(age);

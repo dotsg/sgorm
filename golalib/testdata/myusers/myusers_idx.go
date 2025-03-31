@@ -88,6 +88,8 @@ type orderReadQuery[T any] interface {
 }
 
 type iQuery[T any] interface {
+	WhereAgeEQ(val int) orderReadQuery[T]
+	WhereAgeIN(vals ...int) orderReadQuery[T]
 	orderReadQuery[T]
 }
 
@@ -101,6 +103,20 @@ func Select() iQuery[Myuser] {
 // SelectFields returns rows with selected fields from `myusers` table with index awared query
 func SelectFields[T any]() iQuery[T] {
 	return new(idxQuery[T])
+}
+
+func (q *idxQuery[T]) WhereAgeEQ(val int) orderReadQuery[T] {
+	q.whereSql += " where `age` = ?"
+	q.whereParams = append(q.whereParams, val)
+	return q
+}
+
+func (q *idxQuery[T]) WhereAgeIN(vals ...int) orderReadQuery[T] {
+	q.whereSql = " where `age` in (" + coredb.GetParamPlaceHolder(len(vals)) + ")"
+	for _, val := range vals {
+		q.whereParams = append(q.whereParams, val)
+	}
+	return q
 }
 
 func (q *idxQuery[T]) GetWhere() (whereSql string, params []any) {

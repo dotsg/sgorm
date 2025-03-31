@@ -1,0 +1,5 @@
+[sqlite]
+dbname = "memory.db"
+blacklist = []
+whitelist = []
+output = "../golalib/testdata"

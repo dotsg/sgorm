@@ -164,12 +164,12 @@ func (c Column) GoType() string {
 
 // GoTypeNotNull returns type in go of the column as it's not nullable
 func (c Column) GoTypeNotNull() string {
-	t := c.GoType()
-	if t == "null.String" {
-		return "string"
+	if c.Nullable {
+		c2 := c
+		c2.Nullable = false
+		return c2.GoType()
 	}
-
-	return t
+	return c.GoType()
 }
 
 // GoName returns the variable name for go of the column
